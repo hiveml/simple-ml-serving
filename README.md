@@ -4,7 +4,7 @@ This post code goes over a quick and dirty way to deploy a trained machine learn
 
 Read this if: You've successfully trained a ML model using an ML framework such as Tensorflow or Caffe that you would like to put up as a demo, preferably sooner rather than later, and you prefer lighter solutions rather than spinning up an entire tech stack.
 
-Reading time: 20 mins
+Reading time: 10-15 mins
 
 ### ML in production ###
 
