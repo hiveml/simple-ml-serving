@@ -150,17 +150,19 @@ def classify():
 app.run(host='127.0.0.1',port=9876)
 ```
 
-This looks quite good, except for the fact that flask and tensorflow are both fully synchronous - flask processes one request at a time in the order they are received, and tensorflow fully occupies the thread when doing the image classification.
+This looks quite good, except for the fact that flask and tensorflow are both fully synchronous - flask processes one request at a time in the order they are received, and Tensorflow fully occupies the thread when doing the image classification.
 
-As it's written, the bottleneck is probably still in running the actual neural net. The main potential performance gain is adding batching logic, which provides a rather large speedup on gpu-accelerated hardware. Doing so requires moving to an asynchronous web framework such as Twisted/Klein and running the Tensorflow computation in a separate thread.
+As it's written, the speed bottleneck is probably still in the actual computation work, so there's not much point upgrading the Flask wrapper code. And maybe this code is sufficient to handle your load, for now.
+
+There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. My personal preference is Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support or the ability to hook into non-Python ML frameworks such as Torch.
 
 ## Scaling up: Load Balancing and Service Discovery ##
 
-OK, so now we have a single server serving our model, but maybe it's too slow or our load is getting too high. We'd like to spin up more of these servers - how can we distribute requests across each of them ?
+OK, so now we have a single server serving our model, but maybe it's too slow or our load is getting too high. We'd like to spin up more of these servers - how can we distribute requests across each of them?
 
 The ordinary method is to add a proxy layer, perhaps haproxy or nginx, which balances the load between the backend servers while presenting a single uniform interface to the client. To automatically detect how many backend servers are up and where they are located, people generally use a "service discovery" tool, which may be bundled with the load balancer or be separate.
 
-Setting up and learning how to use these tools is beyond the scope of this article, so I've included a very rudimentary proxy using the node.js package `seaport`.
+Setting up and learning how to use these tools is beyond the scope of this article, so I've included a very rudimentary proxy using the node.js service discovery package `seaport`.
 
 ```
 INSERT CODE HERE
@@ -169,25 +171,30 @@ WITH GITHUB LINK
 
 However, as applied to ML, this concept runs into a bandwidth problem.
 
-At anywhere from tens to hundreds of images a second, the system becomes bottlenecked on network bandwidth. In the current setup, all the data has to go through our single seaport master, which is the single endpoint presented to the client.
+At anywhere from tens to hundreds of images a second, the system becomes bottlenecked on network bandwidth. In the current setup, all the data has to go through our single `seaport` master, which is the single endpoint presented to the client.
 
-To solve this, we need our clients to not hit the single endpoint at http://127.0.0.1:9090, but instead to automatically rotate between backend servers to hit. If you know some netowrking, this sounds suspiciously like a job for DNS!
+To solve this, we need our clients to not hit the single endpoint at `http://127.0.0.1:9090`, but instead to automatically rotate between backend servers to hit. If you know some netowrking, this sounds precisely like a job for DNS!
 
-However, setting up a custom DNS server is again beyond the scope of this article. Instead by changing the clients to follow a 2-step "manual DNS" protocol, we can reuse our rudimentary seaport proxy:
+However, setting up a custom DNS server is again beyond the scope of this article. Instead, by changing the clients to follow a 2-step "manual DNS" protocol, we can reuse our rudimentary seaport proxy to implement a "peer-to-peer" protocol in which clients connect directly to their servers:
 
 ```
 INSERT CODE HERE
 ```
 
-## Conclusion and further reading ##
+## Conclusion and further reading - WIP ##
 
-Now that we have something working, now is probably a good time to plan for scaling up in the near future -- there's a slew of tools to learn, and many other helpful guides out there on the internet. 
+At this point you should have something working in production, but it's certainly not futureproof. There are several important topics that were not covered in this guide:
 
-Certain tasks were completely skipped over in this article, including automating scaling to new boxes, and any way at all of handling model versions. 
-
-After read
-
-By now, you should have a good idea of how to spin up servers 
-
-GPU acceleration: Before proceeding, I strongly recommend nvidia-docker to manage cuda/cudnn dependencies.
+* Automatically deploying and setting up on new hardware. 
+  - Notable tools include Openstack/VMware if you're on your own hardware, Chef/Puppet for installing Docker and handling networking routes, and Docker for installing Tensorflow, Python, and everything else.
+  - Kubernetes or Marathon/Mesos are also great if you're on the cloud
+* Model version management
+  - Not too hard to handle this manually at first
+  - Tensorflow Serving is a great tool that handles this, as well as batching and overall deployment, very thoroughly. The downsides are that it's a bit hard to setup and to write client code for, and in addition doesn't support Caffe/PyTorch.
+* How to migrate your ML code off Matlab
+  - Don't do matlab in production.
+* GPU drivers, Cuda, CUDNN
+  - Use nvidia-docker and try to find some Dockerfiles online.
+* Postprocesing layers. Once you get a few different ML models in production, you might start wanting to mix and match them for different use cases -- run model A only if model B is inconclusive, run model C in Caffe and pass the results to model D in Tensorflow, etc. 
+ 
 
