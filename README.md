@@ -238,8 +238,6 @@ Proxy code:
 // Usage : node p2p_proxy.js
 const seaportServer = require('seaport').createServer()
 seaportServer.listen(12481)
-const proxy = require('http-proxy').createProxyServer({})
-proxy.on('error', () => console.log('proxy error'))
 
 let i = 0
 require('http').createServer((req, res) => {
