@@ -174,13 +174,54 @@ There are 2 obvious ways to scale up request thoroughput : scale up horizontally
 
 OK, so now we have a single server serving our model, but maybe it's too slow or our load is getting too high. We'd like to spin up more of these servers - how can we distribute requests across each of them?
 
-The ordinary method is to add a proxy layer, perhaps haproxy or nginx, which balances the load between the backend servers while presenting a single uniform interface to the client. To automatically detect how many backend servers are up and where they are located, people generally use a "service discovery" tool, which may be bundled with the load balancer or be separate.
-
-Setting up and learning how to use these tools is beyond the scope of this article, so I've included a very rudimentary proxy using the node.js service discovery package `seaport`.
+The ordinary method is to add a proxy layer, perhaps haproxy or nginx, which balances the load between the backend servers while presenting a single uniform interface to the client. For use later in this section, here is some sample code that runs a rudimentary Node.js load balancer http proxy:
 
 ```
-INSERT CODE HERE
-WITH GITHUB LINK
+// Usage : node basic_proxy.js WORKER_PORT_0,WORKER_PORT_1,...
+const worker_ports = process.argv[2].split(',')
+if (worker_ports.length === 0) { console.err('missing worker ports') ; process.exit(1) }
+
+const proxy = require('http-proxy').createProxyServer({})
+proxy.on('error', () => console.log('proxy error'))
+
+let i = 0
+require('http').createServer((req, res) => {
+      proxy.web(req,res, {target: 'http://localhost:' + worker_ports[ (i++) % worker_ports.length ]})
+}).listen(12480)
+console.log(`Proxying localhost:${12480} to [${worker_ports.toString()}]`)
+
+// spin up the ML workers
+const { exec } = require('child_process')
+worker_ports.map(port => exec(`/bin/bash ./tf_classify_server.sh ${port}`))
+```
+
+To automatically detect how many backend servers are up and where they are located, people generally use a "service discovery" tool, which may be bundled with the load balancer or be separate. Some well-known ones are Consul and Zookeeper. Setting up and learning how to use one is beyond the scope of this article, so I've included a very rudimentary proxy using the node.js service discovery package `seaport`.
+
+Proxy code:
+
+```
+// Usage : node seaport_proxy.js
+const seaportServer = require('seaport').createServer()
+seaportServer.listen(12481)
+const proxy = require('http-proxy').createProxyServer({})
+proxy.on('error', () => console.log('proxy error'))
+
+let i = 0
+require('http').createServer((req, res) => {
+      seaportServer.get('tf_classify_server', worker_ports => {
+              const this_port = worker_ports[ (i++) % worker_ports.length ].port
+                  proxy.web(req,res, {target: 'http://localhost:' + this_port })
+                    })
+}).listen(12480)
+console.log(`Seaport proxy listening on ${12480} to '${'tf_classify_server'}' servers registered to ${12481}`)
+```
+
+Worker code:
+```
+// Usage : node tf_classify_server.js
+const port = require('seaport').connect(12481).register('tf_classify_server')
+console.log(`Launching tf classify worker on ${port}`)
+require('child_process').exec(`/bin/bash ./tf_classify_server.sh ${port}`)
 ```
 
 However, as applied to ML, this setup runs into a bandwidth problem.
@@ -191,9 +232,25 @@ To solve this, we need our clients to not hit the single endpoint at `http://127
 
 However, setting up a custom DNS server is again beyond the scope of this article. Instead, by changing the clients to follow a 2-step "manual DNS" protocol, we can reuse our rudimentary seaport proxy to implement a "peer-to-peer" protocol in which clients connect directly to their servers:
 
+
+Proxy code:
 ```
-INSERT CODE HERE
+// Usage : node p2p_proxy.js
+const seaportServer = require('seaport').createServer()
+seaportServer.listen(12481)
+const proxy = require('http-proxy').createProxyServer({})
+proxy.on('error', () => console.log('proxy error'))
+
+let i = 0
+require('http').createServer((req, res) => {
+      seaportServer.get('tf_classify_server', worker_ports => {
+              const this_port = worker_ports[ (i++) % worker_ports.length ].port
+                  res.end(`${this_port}\n`)
+                    })
+}).listen(12480)
+console.log(`P2P seaport proxy listening on ${12480} to '${'tf_classify_server'}' servers registered to ${12481}`)
 ```
+(The worker code is the same as above.)
 
 ## Conclusion and further reading - WIP ##
 
