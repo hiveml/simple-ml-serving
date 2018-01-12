@@ -126,7 +126,7 @@ If you run this, you should find that it takes around 0.1 sec per image, quite f
 
 ## Converting one-shot inference to online inference (Caffe) ##
 
-WIP
+Coming soon!
 
 ## Deployment ##
 The plan is to wrap this code in a Flask app. If you haven't heard of it, Flask is a very lightweight Python web framework which allows you to spin up an http api server with minimal work.
@@ -240,7 +240,7 @@ However, as applied to ML, this setup runs into a bandwidth problem.
 
 At anywhere from tens to hundreds of images a second, the system becomes bottlenecked on network bandwidth. In the current setup, all the data has to go through our single `seaport` master, which is the single endpoint presented to the client.
 
-To solve this, we need our clients to not hit the single endpoint at `http://127.0.0.1:9090`, but instead to automatically rotate between backend servers to hit. If you know some networking, this sounds precisely like a job for DNS!
+To solve this, we need our clients to not hit the single endpoint at `http://127.0.0.1:12480`, but instead to automatically rotate between backend servers to hit. If you know some networking, this sounds precisely like a job for DNS!
 
 However, setting up a custom DNS server is again beyond the scope of this article. Instead, by changing the clients to follow a 2-step "manual DNS" protocol, we can reuse our rudimentary seaport proxy to implement a "peer-to-peer" protocol in which clients connect directly to their servers:
 
@@ -267,7 +267,7 @@ Client code:
 curl -v -XPOST localhost:`curl localhost:12480` -F"data=@$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg"
 ```
 
-## Conclusion and further reading - WIP ##
+## Conclusion and further reading ##
 
 At this point you should have something working in production, but it's certainly not futureproof. There are several important topics that were not covered in this guide:
 
