@@ -121,11 +121,12 @@ The plan is to wrap this code in a Flask app. If you haven't heard of it, Flask 
 As a quick reference, here's a flask app that receives POST requests with multipart form data:
 
 ```
-# usage: python echo.py to launch the server ; and then in 
-# curl -v -XPOST 127.0.0.1:12480 -F "data=./image.jpg"
-from flask import Flask
+#!/usr/bin/env python
+# usage: python echo.py to launch the server ; and then in another session, do
+# curl -v -XPOST 127.0.0.1:12480 -F "data=@./image.jpg"
+from flask import Flask, request
 app = Flask(__name__)
-@app.route('/', methods=['POST']):
+@app.route('/', methods=['POST'])
 def classify():
     try:
         data = request.files.get('data').read()
@@ -139,14 +140,15 @@ app.run(host='127.0.0.1',port=12480)
 And here is the corresponding flask app hooked up to `run_graph` above:
 
 ```
-from flask import Flask
+#!/usr/bin/env python
+from flask import Flask, request
 app = Flask(__name__)
 import label_image as tf_classify
 FLAGS = tf_classify.FLAGS
 labels = tf_classify.load_labels(FLAGS.labels)
 tf_classify.load_graph(FLAGS.graph)
 sess = tf.Session()
-@app.route('/', methods=['POST']):
+@app.route('/', methods=['POST'])
 def classify():
     try:
         data = request.files.get('data').read()
