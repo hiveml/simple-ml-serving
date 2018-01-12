@@ -40,6 +40,7 @@ RUN npm install http-proxy && \
 EXPOSE 12480
 
 COPY . /root/
+RUN npm i
 RUN chmod u+x /root/*.sh
 
 CMD /bin/bash
