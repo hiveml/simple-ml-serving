@@ -23,7 +23,6 @@ RUN bazel-bin/tensorflow/examples/image_retraining/retrain \
 
 WORKDIR /root
 
-COPY test.sh /root/
 
 RUN pip install -U flask twisted
 
@@ -37,6 +36,10 @@ RUN curl -sSL https://nodejs.org/dist/v8.9.0/node-v8.9.0-linux-x64.tar.gz | \
 RUN npm install seaport && npm install -g http-server
 
 EXPOSE 12480
+
+
+COPY . /root/
+
 CMD /bin/bash
 
 
