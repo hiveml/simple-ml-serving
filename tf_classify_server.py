@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# usage: bash tf_classify_server.sh
+# usage: bash tf_classify_server.sh [PORT_NUMBER]
 from flask import Flask, request
 import tensorflow as tf
 import label_image as tf_classify
@@ -17,5 +17,5 @@ def classify():
         return json.dumps(result), 200
     except Exception as e:
         return repr(e), 500
-app.run(host='127.0.0.1',port=12480)
+app.run(host='127.0.0.1',port=12480 if len(unparsed) == 0 else int(unparsed[0]))
 

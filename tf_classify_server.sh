@@ -1,4 +1,5 @@
 #!/bin/bash
+# usage: bash tf_classify_server.sh [PORT_NUMBER]
 python tf_classify_server.py \
     --graph=/tmp/output_graph.pb \
     --labels=/tmp/output_labels.txt \
