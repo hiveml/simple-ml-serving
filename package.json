@@ -1,0 +1,22 @@
+{
+  "name": "simple-ml-serving",
+  "version": "1.0.0",
+  "description": "https://github.com/hiveml/simple-ml-serving",
+  "main": "basic_proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiveml/simple-ml-serving.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hiveml/simple-ml-serving/issues"
+  },
+  "homepage": "https://github.com/hiveml/simple-ml-serving#readme",
+  "dependencies": {
+    "http-proxy": "^1.16.2"
+  }
+}
