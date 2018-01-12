@@ -4,6 +4,8 @@
 cd "$HOME"
 
 bash tf_classify_server.sh &
+PID="$!"
 echo 'started server ; sleeping 5'
 sleep 5
 bash tf_classify_client.sh
+kill "$PID"

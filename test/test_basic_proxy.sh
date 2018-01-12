@@ -3,7 +3,9 @@
 
 cd "$HOME"
 
-node tf_classify_server.sh 12481,12482,12483
+node basic_proxy.js 12481,12482,12483 &
+PID="$!"
 echo 'started servers ; sleeping 5'
 sleep 5
-bash tv_classify_client.sh
+bash tf_classify_client.sh
+kill -- -"$(ps -o pgid= "$PID")"
