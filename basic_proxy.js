@@ -1,13 +1,13 @@
-// Usage : node basic_proxy.js [--port=PROXY_PORT] [--worker_ports=WORKER_PORT_0,WORKER_PORT_1,...]
-
-var proxy = require('http-proxy')
-var argv = require('minimist')(process.argv)
-
-if (argv.worker_ports.length === 0) { process.exit(1) }
-
+// Usage : node basic_proxy.js WORKER_PORT_0,WORKER_PORT_1,...
+var proxy = require('http-proxy').createProxyServer({})
+var worker_ports = process.argv[2].split(',')
+if (worker_ports.length === 0) { console.err('missing worker ports') ; process.exit(1) }
 var i = 0
-proxy.createServer((req, res, proxy) => {
-  var this_port = argv.worker_ports[ (i++) % argv.worker_ports.length ]
-  proxy.proxyRequest(req,res, this_port)
-}).listen(argv.port || 12480)
+require('http').createServer((req, res) => {
+  var this_port = worker_ports[ (i++) % worker_ports.length ]
+  console.log(this_port)
+  proxy.web(req,res, {target: 'http://localhost:' + this_port})
+}).listen(12480)
+console.log(`Proxying localhost:${12480} to [${worker_ports.toString()}]`)
+proxy.on('error', () => console.log('proxy error'))
   
