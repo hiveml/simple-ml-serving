@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -O http://download.tensorflow.org/example_images/flower_photos.tgz && \
     tar xzf flower_photos.tgz 
 
+WORKDIR /tensorflow
+
 RUN bazel build tensorflow/examples/image_retraining:retrain \
                 tensorflow/examples/image_retraining:label_image
 

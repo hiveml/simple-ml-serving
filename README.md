@@ -1,3 +1,7 @@
+https://github.com/hiveml/simple-ml-serving
+
+https://blog.thehive.ai
+
 # simple-ml-serving
 
 This post code goes over a quick and dirty way to deploy a trained machine learning model to production.
