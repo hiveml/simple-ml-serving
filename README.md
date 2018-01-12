@@ -49,7 +49,7 @@ which puts you into an interactive shell inside the container and runs the above
 
 Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt`, which are passed above as command-line parameters to the [label_image.py](https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py) script . Google's image_recognition tutorial also links to [another inference script](https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), but we will be sticking with label_image.py for now.
 
-## Converting one-shot inference to online inference ##
+## Converting one-shot inference to online inference (Tensorflow) ##
 
 If we just want to accept file names from standard input, one per line, we can do "online" inference quite easily:
 
@@ -115,6 +115,10 @@ def run_graph(image_data, labels, input_layer_name, output_layer_name,
 (see code at https://github.com/hiveml/simple-ml-serving/blob/master/label_image.py)
 
 If you run this, you should find that it takes around 0.1 sec per image, quite fast enough for online use.
+
+## Converting one-shot inference to online inference (Caffe) ##
+
+WIP
 
 ## Deployment ##
 The plan is to wrap this code in a Flask app. If you haven't heard of it, Flask is a very lightweight Python web framework which allows you to spin up an http api server with minimal work.
