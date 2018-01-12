@@ -18,6 +18,7 @@
   "homepage": "https://github.com/hiveml/simple-ml-serving#readme",
   "dependencies": {
     "http-proxy": "^1.16.2",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "seaport": "^2.0.9"
   }
 }
