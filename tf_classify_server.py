@@ -3,6 +3,7 @@
 from flask import Flask, request
 import tensorflow as tf
 import label_image as tf_classify
+import json
 app = Flask(__name__)
 FLAGS, unparsed = tf_classify.parser.parse_known_args()
 labels = tf_classify.load_labels(FLAGS.labels)
