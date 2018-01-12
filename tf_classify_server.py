@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+# usage: bash tf_classify_server.sh
 from flask import Flask, request
-app = Flask(__name__)
+import tensorflow as tf
 import label_image as tf_classify
+app = Flask(__name__)
 FLAGS, unparsed = tf_classify.parser.parse_known_args()
 labels = tf_classify.load_labels(FLAGS.labels)
 tf_classify.load_graph(FLAGS.graph)
