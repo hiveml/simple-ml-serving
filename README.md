@@ -36,7 +36,7 @@ bazel-bin/tensorflow/examples/image_retraining/label_image \
     --image=$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg
 ```
 
-Alternatively, you can use my prebuilt Docker (https://www.docker.com/get-docker) image like so:
+Alternatively, if you have [Docker](https://www.docker.com/get-docker) installed, you can use my prebuilt [Docker image](https://hub.docker.com/r/liubowei/simple-ml-serving/) like so:
 
 ```
 sudo docker run -it -P liubowei/simple-ml-serving:latest /bin/bash
@@ -46,7 +46,7 @@ sudo docker run -it -P liubowei/simple-ml-serving:latest /bin/bash
 
 which puts you into an interactive shell inside the container and runs the above command; you can also follow along with the rest of this post inside the container if you wish.
 
-Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt`, which are passed above as command-line parameters to the label_image.py script (https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py). Google also gives us another inference script (https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), also linked in https://www.tensorflow.org/tutorials/image_recognition. 
+Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt`, which are passed above as command-line parameters to the [label_image.py](https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py) script . Google's image_recognition tutorial also links to [another inference script](https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), but we will be sticking with label_image.py for now.
 
 ## Converting one-shot inference to online inference ##
 
@@ -111,7 +111,7 @@ def run_graph(image_data, labels, input_layer_name, output_layer_name,
           FLAGS.num_top_predictions, sess)
 ```
 
-(see code at [INSERT LINK HERE])
+(see code at https://github.com/hiveml/simple-ml-serving/blob/master/label_image.py)
 
 If you run this, you should find that it takes around 0.1 sec per image, quite fast enough for online use.
 
@@ -129,11 +129,11 @@ app = Flask(__name__)
 def classify():
     try:
         data = request.files.get('data').read()
-        print data
+        print repr(data)[:1000]
         return data, 200
     except Exception as e:
         return repr(e), 500
-app.run(host='127.0.0.1',port=9876)
+app.run(host='127.0.0.1',port=12480)
 ```
 
 And here is the corresponding flask app hooked up to `run_graph` above:
@@ -141,19 +141,20 @@ And here is the corresponding flask app hooked up to `run_graph` above:
 ```
 from flask import Flask
 app = Flask(__name__)
-from classify import load_labels, load_graph, run_graph, FLAGS
-labels = load_labels(FLAGS.labels)
-load_graph(FLAGS.graph)
+import label_image as tf_classify
+FLAGS = tf_classify.FLAGS
+labels = tf_classify.load_labels(FLAGS.labels)
+tf_classify.load_graph(FLAGS.graph)
 sess = tf.Session()
 @app.route('/', methods=['POST']):
 def classify():
     try:
         data = request.files.get('data').read()
-        result = run_graph(data, labels, FLAGS.input_layer, FLAGS.output_layer, FLAGS.num_top_predictions, sess)
+        result = tf_classify.run_graph(data, labels, FLAGS.input_layer, FLAGS.output_layer, FLAGS.num_top_predictions, sess)
         return json.dumps(result), 200
     except Exception as e:
         return repr(e), 500
-app.run(host='127.0.0.1',port=9876)
+app.run(host='127.0.0.1',port=12480)
 ```
 
 This looks quite good, except for the fact that flask and tensorflow are both fully synchronous - flask processes one request at a time in the order they are received, and Tensorflow fully occupies the thread when doing the image classification.
