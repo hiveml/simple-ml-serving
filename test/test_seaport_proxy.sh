@@ -18,6 +18,7 @@ cd "$HOME"
   sleep 1000
 ) &
 PID=$!
+PGID=$(echo `ps -o pgid= "$PID"`)
 sleep 15
-kill -- -"$(ps -o pgid= "$PID")"
+kill -- -"$PGID"
 
