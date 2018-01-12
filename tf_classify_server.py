@@ -2,7 +2,7 @@
 from flask import Flask, request
 app = Flask(__name__)
 import label_image as tf_classify
-FLAGS = tf_classify.FLAGS
+FLAGS, unparsed = tf_classify.parser.parse_known_args()
 labels = tf_classify.load_labels(FLAGS.labels)
 tf_classify.load_graph(FLAGS.graph)
 sess = tf.Session()
