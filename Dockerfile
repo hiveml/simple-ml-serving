@@ -39,6 +39,7 @@ EXPOSE 12480
 
 
 COPY . /root/
+RUN chmod u+x /root/*.sh
 
 CMD /bin/bash
 
