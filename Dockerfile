@@ -33,10 +33,11 @@ RUN curl -sSL https://nodejs.org/dist/v8.9.0/node-v8.9.0-linux-x64.tar.gz | \
               --exclude="ChangeLog"                                           \
               -C "/usr/local"
 
-RUN npm install seaport && npm install -g http-server
+RUN npm install http-proxy && \
+    npm install -g seaport http-server 
 
+# recommend using --net=host, but if not, this exposes at least one port to the host
 EXPOSE 12480
-
 
 COPY . /root/
 RUN chmod u+x /root/*.sh
