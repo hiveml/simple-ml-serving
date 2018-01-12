@@ -4,7 +4,7 @@ https://blog.thehive.ai
 
 # simple-ml-serving
 
-This post code goes over a quick and dirty way to deploy a trained machine learning model to production.
+This post goes over a quick and dirty way to deploy a trained machine learning model to production.
 
 Read this if: You've successfully trained a ML model using an ML framework such as Tensorflow or Caffe that you would like to put up as a demo, preferably sooner rather than later, and you prefer lighter solutions rather than spinning up an entire tech stack.
 
@@ -12,9 +12,9 @@ Reading time: 10-15 mins
 
 ### ML in production ###
 
-When we started exploring the machine learning space here at Hive, we already had millions of ground truth labeled images, allowing us to train from scratch a state-of-the-art image classification model, specialized for our use case, in under a week. The more typical ML use case, though, is usually on the order of hundreds of images, for which I would recommend fine-tuning an existing model. For instance, https://www.tensorflow.org/tutorials/image_retraining has a great tutorial on how to fine-tune an Imagenet model (trained on 1.2M images, 1000 classes) to classify a sample dataset (3647 images, 5 classes).
+When we first entered the machine learning space here at Hive, we already had millions of ground truth labeled images, allowing us to train a state-of-the-art deep convolutional image classification model from scratch (i.e. randomized weights) in under a week, specialized for our use case. The more typical ML use case, though, is usually on the order of hundreds of images, for which I would recommend fine-tuning an existing model. For instance, https://www.tensorflow.org/tutorials/image_retraining has a great tutorial on how to fine-tune an Imagenet model (trained on 1.2M images, 1000 classes) to classify a sample dataset of flowers (3647 images, 5 classes).
 
-For a quick tl;dr, after installing bazel and tensorflow, you would need to run the following code, which takes around 30 mins to build and 5 minutes to train:
+For a quick tl;dr of the linked Tensorflow tutorial, after installing bazel and tensorflow, you would need to run the following code, which takes around 30 mins to build and 5 minutes to train:
 
 ```
 (
@@ -36,13 +36,15 @@ bazel-bin/tensorflow/examples/image_retraining/label_image \
     --image=$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg
 ```
 
-If you're having trouble installing tensorflow and bazel, especially if you're not on linux, I'm personally a huge fan of Docker (https://www.docker.com/get-docker) -- I tested this code using
+Alternatively, you can use my prebuilt Docker (https://www.docker.com/get-docker) image like so:
 
 ```
-sudo docker run -it tensorflow/tensorflow:latest-devel /bin/bash
+sudo docker run -it -P liubowei/simple-ml-serving:latest /bin/bash
+
+>>> cd ~ && cat test.sh && bash test.sh
 ```
 
-which dropped me in a bash terminal where i ran the steps above.
+which puts you into an interactive shell inside the container and runs the above command; you can also follow along with the rest of this post inside the container if you wish.
 
 Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt`, which are passed above as command-line parameters to the label_image.py script (https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py). Google also gives us another inference script (https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), also linked in https://www.tensorflow.org/tutorials/image_recognition. 
 
