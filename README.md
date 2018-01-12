@@ -161,7 +161,7 @@ This looks quite good, except for the fact that flask and tensorflow are both fu
 
 As it's written, the speed bottleneck is probably still in the actual computation work, so there's not much point upgrading the Flask wrapper code. And maybe this code is sufficient to handle your load, for now.
 
-There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. My personal preference is Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support or the ability to hook into non-Python ML frameworks such as Torch.
+There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. My personal preference is Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support and the ability to hook into non-Python ML frameworks such as Torch.
 
 ## Scaling up: Load Balancing and Service Discovery ##
 
@@ -176,11 +176,11 @@ INSERT CODE HERE
 WITH GITHUB LINK
 ```
 
-However, as applied to ML, this concept runs into a bandwidth problem.
+However, as applied to ML, this setup runs into a bandwidth problem.
 
 At anywhere from tens to hundreds of images a second, the system becomes bottlenecked on network bandwidth. In the current setup, all the data has to go through our single `seaport` master, which is the single endpoint presented to the client.
 
-To solve this, we need our clients to not hit the single endpoint at `http://127.0.0.1:9090`, but instead to automatically rotate between backend servers to hit. If you know some netowrking, this sounds precisely like a job for DNS!
+To solve this, we need our clients to not hit the single endpoint at `http://127.0.0.1:9090`, but instead to automatically rotate between backend servers to hit. If you know some networking, this sounds precisely like a job for DNS!
 
 However, setting up a custom DNS server is again beyond the scope of this article. Instead, by changing the clients to follow a 2-step "manual DNS" protocol, we can reuse our rudimentary seaport proxy to implement a "peer-to-peer" protocol in which clients connect directly to their servers:
 
