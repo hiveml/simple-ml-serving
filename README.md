@@ -186,7 +186,7 @@ proxy.on('error', () => console.log('proxy error'))
 
 let i = 0
 require('http').createServer((req, res) => {
-      proxy.web(req,res, {target: 'http://localhost:' + worker_ports[ (i++) % worker_ports.length ]})
+  proxy.web(req,res, {target: 'http://localhost:' + worker_ports[ (i++) % worker_ports.length ]})
 }).listen(12480)
 console.log(`Proxying localhost:${12480} to [${worker_ports.toString()}]`)
 
@@ -208,10 +208,10 @@ proxy.on('error', () => console.log('proxy error'))
 
 let i = 0
 require('http').createServer((req, res) => {
-      seaportServer.get('tf_classify_server', worker_ports => {
-              const this_port = worker_ports[ (i++) % worker_ports.length ].port
-                  proxy.web(req,res, {target: 'http://localhost:' + this_port })
-                    })
+  seaportServer.get('tf_classify_server', worker_ports => {
+    const this_port = worker_ports[ (i++) % worker_ports.length ].port
+    proxy.web(req,res, {target: 'http://localhost:' + this_port })
+  })
 }).listen(12480)
 console.log(`Seaport proxy listening on ${12480} to '${'tf_classify_server'}' servers registered to ${12481}`)
 ```
@@ -243,14 +243,19 @@ proxy.on('error', () => console.log('proxy error'))
 
 let i = 0
 require('http').createServer((req, res) => {
-      seaportServer.get('tf_classify_server', worker_ports => {
-              const this_port = worker_ports[ (i++) % worker_ports.length ].port
-                  res.end(`${this_port}\n`)
-                    })
+  seaportServer.get('tf_classify_server', worker_ports => {
+    const this_port = worker_ports[ (i++) % worker_ports.length ].port
+    res.end(`${this_port}\n`)
+  })
 }).listen(12480)
 console.log(`P2P seaport proxy listening on ${12480} to '${'tf_classify_server'}' servers registered to ${12481}`)
 ```
 (The worker code is the same as above.)
+
+Client code:
+```
+curl -v -XPOST localhost:`curl localhost:12480` -F"data=@$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg"
+```
 
 ## Conclusion and further reading - WIP ##
 
