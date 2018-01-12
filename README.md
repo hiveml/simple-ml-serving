@@ -142,10 +142,13 @@ And here is the corresponding flask app hooked up to `run_graph` above:
 
 ```
 #!/usr/bin/env python
+# usage: bash tf_classify_server.sh
 from flask import Flask, request
-app = Flask(__name__)
+import tensorflow as tf
 import label_image as tf_classify
-FLAGS = tf_classify.FLAGS
+import json
+app = Flask(__name__)
+FLAGS, unparsed = tf_classify.parser.parse_known_args()
 labels = tf_classify.load_labels(FLAGS.labels)
 tf_classify.load_graph(FLAGS.graph)
 sess = tf.Session()
@@ -158,6 +161,7 @@ def classify():
     except Exception as e:
         return repr(e), 500
 app.run(host='127.0.0.1',port=12480)
+
 ```
 
 This looks quite good, except for the fact that flask and tensorflow are both fully synchronous - flask processes one request at a time in the order they are received, and Tensorflow fully occupies the thread when doing the image classification.
