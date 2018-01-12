@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# usage: python echo.py to launch the server ; and then in another session, do
+# usage: python echo_server.py to launch the server ; and then in another session, do
 # curl -v -XPOST 127.0.0.1:12480 -F "data=@./image.jpg"
 from flask import Flask, request
 app = Flask(__name__)
