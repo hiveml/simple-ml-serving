@@ -11,6 +11,14 @@ Read this if: You've successfully trained a ML model using an ML framework such 
 
 Reading time: 10-15 mins
 
+TL;DR Read and understand the files in `test`.
+* [Check your tensorflow installation](test/test_tensorflow.sh)
+* [Run online classification from stdin](test/test_label_image.sh)
+* [Run online classification on localhost](test/test_tf_classify_server.sh)
+* [Put classifiers behind a hardcoded proxy](test/test_basic_proxy.sh)
+* [Put classifiers behind a proxy with service discovery](test/test_seaport_proxy.sh)
+* [Call classifiers directly using service discovery](test/test_p2p_proxy.sh)
+
 ### ML in production ###
 
 When we first entered the machine learning space here at Hive, we already had millions of ground truth labeled images, allowing us to train a state-of-the-art deep convolutional image classification model from scratch (i.e. randomized weights) in under a week, specialized for our use case. The more typical ML use case, though, is usually on the order of hundreds of images, for which I would recommend fine-tuning an existing model. For instance, https://www.tensorflow.org/tutorials/image_retraining has a great tutorial on how to fine-tune an Imagenet model (trained on 1.2M images, 1000 classes) to classify a sample dataset of flowers (3647 images, 5 classes).
