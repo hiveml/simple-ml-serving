@@ -124,12 +124,16 @@ def run_graph(image_data, labels, input_layer_name, output_layer_name,
 
 If you run this, you should find that it takes around 0.1 sec per image, quite fast enough for online use.
 
-## Converting one-shot inference to online inference (Caffe) ##
+## Converting one-shot inference to online inference (Other ML Frameworks) ##
 
-Coming soon!
+Caffe uses its `net.forward` code which is very easy to put into a callable framework: see http://nbviewer.jupyter.org/github/BVLC/caffe/blob/master/examples/00-classification.ipynb
+
+Mxnet is also very unique: it actually has ready-to-go inference server code publicly available: https://github.com/awslabs/mxnet-model-server.
+
+Further details coming soon!
 
 ## Deployment ##
-The plan is to wrap this code in a Flask app. If you haven't heard of it, Flask is a very lightweight Python web framework which allows you to spin up an http api server with minimal work.
+The plan is to wrap this code in a Flask app and turn it into a HTTP microservice. If you haven't heard of it, Flask is a very lightweight Python web framework which allows you to spin up an http api server with minimal work.
 
 As a quick reference, here's a flask app that receives POST requests with multipart form data:
 
@@ -266,6 +270,10 @@ Client code:
 ```
 curl -v -XPOST localhost:`curl localhost:12480` -F"data=@$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg"
 ```
+
+## RPC Deployment ##
+
+Coming soon! A version of the above with Flask replaced by ZeroMQ.
 
 ## Conclusion and further reading ##
 
