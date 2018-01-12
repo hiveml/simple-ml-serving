@@ -17,7 +17,7 @@ TL;DR Read and understand the files in `test`.
 * [Run online classification on localhost](test/test_tf_classify_server.sh)
 * [Put classifiers behind a hardcoded proxy](test/test_basic_proxy.sh)
 * [Put classifiers behind a proxy with service discovery](test/test_seaport_proxy.sh)
-* [Call classifiers directly using service discovery](test/test_p2p_proxy.sh)
+* [Call classifiers using a pseudo-DNS](test/test_p2p_proxy.sh)
 
 ### ML in production ###
 
@@ -180,7 +180,7 @@ This looks quite good, except for the fact that flask and tensorflow are both fu
 
 As it's written, the speed bottleneck is probably still in the actual computation work, so there's not much point upgrading the Flask wrapper code. And maybe this code is sufficient to handle your load, for now.
 
-There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. My personal preference is Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support and the ability to hook into non-Python ML frameworks such as Torch.
+There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. Two possibilities are using Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support and the ability to hook into non-Python ML frameworks such as Torch.
 
 ## Scaling up: Load Balancing and Service Discovery ##
 
