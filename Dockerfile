@@ -21,6 +21,21 @@ RUN bazel-bin/tensorflow/examples/image_retraining/retrain \
         --image_dir "$HOME"/flower_photos \
         --how_many_training_steps=200
 
+WORKDIR /root
+
+COPY test.sh /root/
+
+RUN pip install -U flask twisted
+
+RUN curl -sSL https://nodejs.org/dist/v8.9.0/node-v8.9.0-linux-x64.tar.gz | \
+    tar xzf - --strip-components=1                                            \
+              --exclude="README.md"                                           \
+              --exclude="LICENSE"                                             \
+              --exclude="ChangeLog"                                           \
+              -C "/usr/local"
+
+RUN npm install seaport && npm install -g http-server
+
 EXPOSE 12480
 CMD /bin/bash
 
