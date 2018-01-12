@@ -3,7 +3,7 @@ https://github.com/hiveml/simple-ml-serving
 https://blog.thehive.ai
 
 # simple-ml-serving
-# Or, I just trained a machine learning model - now what ?
+#### Or, I just trained a machine learning model - now what ?
 
 This post goes over a quick and dirty way to deploy a trained machine learning model to production.
 
@@ -102,7 +102,7 @@ def run_graph(image_data, labels, input_layer_name, output_layer_name,
       human_string = labels[node_id]
       score = predictions[node_id]
       print('%s (score = %.5f)' % (human_string, score))
-    return [ (labels[node_id], predictions[node_id]) for node_id in top_k ]
+    return [ (labels[node_id], predictions[node_id].item()) for node_id in top_k ] # numpy floats are not json serializable, have to run item
 
 ...
 
