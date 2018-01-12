@@ -36,12 +36,12 @@ bazel-bin/tensorflow/examples/image_retraining/label_image \
     --image=$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg
 ```
 
-Alternatively, if you have [Docker](https://www.docker.com/get-docker) installed, you can use my prebuilt [Docker image](https://hub.docker.com/r/liubowei/simple-ml-serving/) like so:
+Alternatively, if you have [Docker](https://www.docker.com/get-docker) installed, you can use this [prebuilt Docker image](https://hub.docker.com/r/liubowei/simple-ml-serving/) like so:
 
 ```
-sudo docker run -it -P liubowei/simple-ml-serving:latest /bin/bash
+sudo docker run -it --net=host liubowei/simple-ml-serving:latest /bin/bash
 
->>> cd ~ && cat test.sh && bash test.sh
+>>> cat test.sh && bash test.sh
 ```
 
 which puts you into an interactive shell inside the container and runs the above command; you can also follow along with the rest of this post inside the container if you wish.
@@ -116,13 +116,13 @@ def run_graph(image_data, labels, input_layer_name, output_layer_name,
 If you run this, you should find that it takes around 0.1 sec per image, quite fast enough for online use.
 
 ## Deployment ##
-The plan is to wrap this code in a flask app (quite simple), and then enable concurrent requests by upgrading to Twisted.
+The plan is to wrap this code in a Flask app. If you haven't heard of it, Flask is a very lightweight Python web framework which allows you to spin up an http api server with minimal work.
 
-For a reminder, here's a flask app that receives POST requests with multipart form data:
+As a quick reference, here's a flask app that receives POST requests with multipart form data:
 
 ```
-# usage: pip install flask && python echo.py
-# curl -v -XPOST 127.0.0.1:9876 -F "data=./image.jpg"
+# usage: python echo.py to launch the server ; and then in 
+# curl -v -XPOST 127.0.0.1:12480 -F "data=./image.jpg"
 from flask import Flask
 app = Flask(__name__)
 @app.route('/', methods=['POST']):
