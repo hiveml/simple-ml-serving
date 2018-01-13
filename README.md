@@ -290,7 +290,7 @@ At this point, you should have something working in production, but it's certain
 * GPU drivers, Cuda, CUDNN
   - Use nvidia-docker and try to find some Dockerfiles online
   - There's also some work that goes into managing GPU resources, if you have more than one per box. Marathon/Mesos does this well, but at Hive we use a homebrewed tool that supports fractional GPUs
-* Postprocesing
+* Postprocessing
   - Generally you'll want a frontend to present the ML results, but it's also a good idea to have an intermediate postprocessing layer so that you can make slight tweaks to the model results or confidences without having to redeploy a second classifier.
   - Once you get a few different ML models in production, it's also common to mix and match them for different use cases -- run model A only if models B and C are both inconclusive, run model D in Caffe and pass the results to model E in Tensorflow, etc. 
 
