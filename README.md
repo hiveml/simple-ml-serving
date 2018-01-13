@@ -7,7 +7,7 @@ https://blog.thehive.ai
 
 This post goes over a quick and dirty way to deploy a trained machine learning model to production.
 
-Read this if: You've successfully trained a ML model using an ML framework such as Tensorflow or Caffe that you would like to put up as a demo, preferably sooner rather than later, and you prefer lighter solutions rather than spinning up an entire tech stack.
+Read this if: You've successfully trained an ML model using a framework such as Tensorflow or Caffe that you would like to put up as a demo, preferably sooner rather than later, and you prefer lighter solutions rather than spinning up an entire tech stack.
 
 Reading time: 10-15 mins
 
@@ -21,7 +21,7 @@ TL;DR Read and understand the files in `test`.
 
 ### ML in production ###
 
-When we first entered the machine learning space here at Hive, we already had millions of ground truth labeled images, allowing us to train a state-of-the-art deep convolutional image classification model from scratch (i.e. randomized weights) in under a week, specialized for our use case. The more typical ML use case, though, is usually on the order of hundreds of images, for which I would recommend fine-tuning an existing model. For instance, https://www.tensorflow.org/tutorials/image_retraining has a great tutorial on how to fine-tune an Imagenet model (trained on 1.2M images, 1000 classes) to classify a sample dataset of flowers (3647 images, 5 classes).
+When we first entered the machine learning space here at Hive, we had been doing manual image moderation for half a year, giving us millions of ground truth labeled images. This allowed us to train a state-of-the-art deep convolutional image classification model from scratch (i.e. randomized weights) in under a week, specialized for our use case. The more typical ML use case, though, is usually on the order of hundreds of images, for which I would recommend fine-tuning an existing model. For instance, https://www.tensorflow.org/tutorials/image_retraining has a great tutorial on how to fine-tune an Imagenet model (trained on 1.2M images, 1000 classes) to classify a sample dataset of flowers (3647 images, 5 classes).
 
 For a quick tl;dr of the linked Tensorflow tutorial, after installing bazel and tensorflow, you would need to run the following code, which takes around 30 mins to build and 5 minutes to train:
 
@@ -55,7 +55,7 @@ sudo docker run -it --net=host liubowei/simple-ml-serving:latest /bin/bash
 
 which puts you into an interactive shell inside the container and runs the above command; you can also follow along with the rest of this post inside the container if you wish.
 
-Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt`, which are passed above as command-line parameters to the [label_image.py](https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py) script . Google's image_recognition tutorial also links to [another inference script](https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), but we will be sticking with label_image.py for now.
+Now, tensorflow has saved the model information into `/tmp/output_graph.pb` and `/tmp/output_labels.txt,` which are passed above as command-line parameters to the [label_image.py](https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/image_retraining/label_image.py) script . Google's image_recognition tutorial also links to [another inference script](https://github.com/tensorflow/models/blob/master/tutorials/image/imagenet/classify_image.py#L130), but we will be sticking with label_image.py for now.
 
 ## Converting one-shot inference to online inference (Tensorflow) ##
 
@@ -184,9 +184,9 @@ This looks quite good, except for the fact that flask and tensorflow are both fu
 
 As it's written, the speed bottleneck is probably still in the actual computation work, so there's not much point upgrading the Flask wrapper code. And maybe this code is sufficient to handle your load, for now.
 
-There are 2 obvious ways to scale up request thoroughput : scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. Two possibilities are using Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support and the ability to hook into non-Python ML frameworks such as Torch.
+There are 2 obvious ways to scale up request throughput: scale up horizontally by increasing the number of workers, which is covered in the next section, or scale up vertically by utilizing a GPU and batching logic. Implementing the latter requires a webserver that is able to handle multiple pending requests at once, and decide whether to keep waiting for a larger batch or send it off to the Tensorflow graph thread to be classified, for which this Flask app is horrendously unsuited. Two possibilities are using Twisted + Klein for keeping code in Python, or Node.js + ZeroMQ if you prefer first class event loop support and the ability to hook into non-Python ML frameworks such as Torch.
 
-## Scaling up: Load Balancing and Service Discovery ##
+## Scaling up: load balancing and service discovery ##
 
 OK, so now we have a single server serving our model, but maybe it's too slow or our load is getting too high. We'd like to spin up more of these servers - how can we distribute requests across each of them?
 
@@ -271,24 +271,26 @@ Client code:
 curl -v -XPOST localhost:`curl localhost:12480` -F"data=@$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg"
 ```
 
-## RPC Deployment ##
+## RPC deployment ##
 
-Coming soon! A version of the above with Flask replaced by ZeroMQ.
+It's possible to replace the Flask interface above with a ZeroMQ interface, turning this code into an RPC microservice. Further details and code snippets coming soon!
 
 ## Conclusion and further reading ##
 
-At this point you should have something working in production, but it's certainly not futureproof. There are several important topics that were not covered in this guide:
+At this point, you should have something working in production, but it's certainly not futureproof. There are several important topics that were not covered in this guide:
 
-* Automatically deploying and setting up on new hardware. 
-  - Notable tools include Openstack/VMware if you're on your own hardware, Chef/Puppet for installing Docker and handling networking routes, and Docker for installing Tensorflow, Python, and everything else.
+* Automatically deploying and setting up on new hardware
+  - Notable tools include Openstack/VMware if you're on your own hardware, Chef/Puppet for installing Docker and handling networking routes, and Docker for installing Tensorflow, Python, and everything else
   - Kubernetes or Marathon/Mesos are also great if you're on the cloud
 * Model version management
   - Not too hard to handle this manually at first
-  - Tensorflow Serving is a great tool that handles this, as well as batching and overall deployment, very thoroughly. The downsides are that it's a bit hard to setup and to write client code for, and in addition doesn't support Caffe/PyTorch.
+  - Tensorflow Serving is a great tool that handles this, as well as batching and overall deployment, very thoroughly. The downsides are that it's a bit hard to setup and to write client code for, and in addition doesn't support Caffe/PyTorch
 * How to migrate your ML code off Matlab
-  - Don't do matlab in production.
+  - Don't try to use Matlab in production. Just don't
 * GPU drivers, Cuda, CUDNN
-  - Use nvidia-docker and try to find some Dockerfiles online.
-* Postprocesing layers. Once you get a few different ML models in production, you might start wanting to mix and match them for different use cases -- run model A only if model B is inconclusive, run model C in Caffe and pass the results to model D in Tensorflow, etc. 
- 
+  - Use nvidia-docker and try to find some Dockerfiles online
+  - There's also some work that goes into managing GPU resources, if you have more than one per box. Marathon/Mesos does this well, but at Hive we use a homebrewed tool that supports fractional GPUs
+* Postprocesing
+  - Generally you'll want a frontend to present the ML results, but it's also a good idea to have an intermediate postprocessing layer so that you can make slight tweaks to the model results or confidences without having to redeploy a second classifier.
+  - Once you get a few different ML models in production, it's also common to mix and match them for different use cases -- run model A only if models B and C are both inconclusive, run model D in Caffe and pass the results to model E in Tensorflow, etc. 
 
